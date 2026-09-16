@@ -1,0 +1,21 @@
+---
+# Create Controller labels, job templates, and workflows.
+#
+#   cp vars/aap.yml.example vars/aap.yml
+#   export CONTROLLER_HOST=https://aap.example.com
+#   export CONTROLLER_OAUTH_TOKEN=...
+#   export CONTROLLER_VERIFY_SSL=true
+#   ansible-playbook playbooks/install.yml -e @vars/aap.yml
+#
+# The project and credentials must already exist. This playbook does not
+# create secrets.
+
+- name: Install OWASP objects on Controller
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - "{{ playbook_dir }}/../vars/names.yml"
+    - "{{ playbook_dir }}/../vars/surveys.yml"
+  roles:
+    - role: install_controller

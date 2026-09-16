@@ -1,0 +1,106 @@
+---
+- name: Create baseline harden job template
+  ansible.controller.job_template:
+    name: "{{ owasp_jt_baseline }}"
+    description: OWASP A01/A02/A07 — firewalld, SELinux, SSH, account file modes
+    organization: "{{ aap_organization }}"
+    job_type: run
+    inventory: "{{ aap_inventory }}"
+    project: "{{ aap_project_name }}"
+    playbook: playbooks/baseline_harden.yml
+    credentials:
+      - "{{ aap_machine_credential }}"
+    execution_environment: "{{ aap_execution_environment }}"
+    ask_variables_on_launch: false
+    labels:
+      - "{{ owasp_label }}"
+    state: present
+
+- name: Create inventory packages job template
+  ansible.controller.job_template:
+    name: "{{ owasp_jt_inventory }}"
+    description: OWASP A03 — installed packages and available security updates
+    organization: "{{ aap_organization }}"
+    job_type: run
+    inventory: "{{ aap_inventory }}"
+    project: "{{ aap_project_name }}"
+    playbook: playbooks/inventory_packages.yml
+    credentials:
+      - "{{ aap_machine_credential }}"
+    execution_environment: "{{ aap_execution_environment }}"
+    ask_variables_on_launch: false
+    labels:
+      - "{{ owasp_label }}"
+    state: present
+
+- name: Create patch packages job template
+  ansible.controller.job_template:
+    name: "{{ owasp_jt_patch }}"
+    description: OWASP A03 — apply security-only DNF updates
+    organization: "{{ aap_organization }}"
+    job_type: run
+    inventory: "{{ aap_inventory }}"
+    project: "{{ aap_project_name }}"
+    playbook: playbooks/patch_packages.yml
+    credentials:
+      - "{{ aap_machine_credential }}"
+    execution_environment: "{{ aap_execution_environment }}"
+    ask_variables_on_launch: false
+    labels:
+      - "{{ owasp_label }}"
+    state: present
+
+- name: Create crypto TLS job template
+  ansible.controller.job_template:
+    name: "{{ owasp_jt_crypto }}"
+    description: OWASP A04 — system cryptographic policy
+    organization: "{{ aap_organization }}"
+    job_type: run
+    inventory: "{{ aap_inventory }}"
+    project: "{{ aap_project_name }}"
+    playbook: playbooks/crypto_tls.yml
+    credentials:
+      - "{{ aap_machine_credential }}"
+    execution_environment: "{{ aap_execution_environment }}"
+    ask_variables_on_launch: false
+    survey_enabled: true
+    survey_spec: "{{ owasp_crypto_survey }}"
+    labels:
+      - "{{ owasp_label }}"
+    state: present
+
+- name: Create logging alert job template
+  ansible.controller.job_template:
+    name: "{{ owasp_jt_logging }}"
+    description: OWASP A09 — auditd, rsyslog, authentication watches
+    organization: "{{ aap_organization }}"
+    job_type: run
+    inventory: "{{ aap_inventory }}"
+    project: "{{ aap_project_name }}"
+    playbook: playbooks/logging_alert.yml
+    credentials:
+      - "{{ aap_machine_credential }}"
+    execution_environment: "{{ aap_execution_environment }}"
+    ask_variables_on_launch: false
+    labels:
+      - "{{ owasp_label }}"
+    state: present
+
+- name: Create drift scan job template
+  ansible.controller.job_template:
+    name: "{{ owasp_jt_drift }}"
+    description: OWASP A02/A08 — OpenSCAP profile evaluation
+    organization: "{{ aap_organization }}"
+    job_type: run
+    inventory: "{{ aap_inventory }}"
+    project: "{{ aap_project_name }}"
+    playbook: playbooks/drift_scan.yml
+    credentials:
+      - "{{ aap_machine_credential }}"
+    execution_environment: "{{ aap_execution_environment }}"
+    ask_variables_on_launch: false
+    survey_enabled: true
+    survey_spec: "{{ owasp_oscap_survey }}"
+    labels:
+      - "{{ owasp_label }}"
+    state: present

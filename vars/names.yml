@@ -1,0 +1,15 @@
+---
+# Canonical AAP object names. Override with extra-vars only if you
+# need a second copy in another organization.
+
+owasp_label: owasp-top10
+
+owasp_jt_baseline: OWASP A02 - Baseline harden
+owasp_jt_inventory: OWASP A03 - Inventory packages
+owasp_jt_patch: OWASP A03 - Patch security updates
+owasp_jt_crypto: OWASP A04 - Crypto and TLS
+owasp_jt_logging: OWASP A09 - Logging and audit
+owasp_jt_drift: OWASP A02 A08 - Drift scan
+
+owasp_wf_assess: OWASP - Assess
+owasp_wf_remediate: OWASP - Remediate

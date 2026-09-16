@@ -1,0 +1,82 @@
+---
+- name: Require OpenSCAP scan inputs
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] == 'RedHat'
+      - owasp_oscap_datastream is defined
+      - owasp_oscap_datastream | length > 0
+      - owasp_oscap_profile is defined
+      - owasp_oscap_profile | length > 0
+      - owasp_oscap_report_path is defined
+      - owasp_oscap_report_path | length > 0
+      - owasp_oscap_results_path is defined
+      - owasp_oscap_results_path | length > 0
+    fail_msg: >-
+      Set owasp_oscap_datastream, owasp_oscap_profile, owasp_oscap_report_path,
+      and owasp_oscap_results_path on {{ inventory_hostname }}.
+
+- name: Locate oscap binary
+  ansible.builtin.stat:
+    path: /usr/bin/oscap
+  register: owasp_oscap_bin
+
+- name: Fail when OpenSCAP is missing
+  ansible.builtin.assert:
+    that:
+      - owasp_oscap_bin.stat.exists
+    fail_msg: >-
+      /usr/bin/oscap is missing on {{ inventory_hostname }}.
+      Install openscap-scanner and scap-security-guide.
+
+- name: Locate OpenSCAP datastream
+  ansible.builtin.stat:
+    path: "{{ owasp_oscap_datastream }}"
+  register: owasp_oscap_ds
+
+- name: Fail when datastream is missing
+  ansible.builtin.assert:
+    that:
+      - owasp_oscap_ds.stat.exists
+    fail_msg: >-
+      OpenSCAP datastream '{{ owasp_oscap_datastream }}' is missing on
+      {{ inventory_hostname }}. Install scap-security-guide.
+
+- name: Evaluate OpenSCAP profile
+  ansible.builtin.command:
+    argv:
+      - oscap
+      - xccdf
+      - eval
+      - --profile
+      - "{{ owasp_oscap_profile }}"
+      - --report
+      - "{{ owasp_oscap_report_path }}"
+      - --results
+      - "{{ owasp_oscap_results_path }}"
+      - "{{ owasp_oscap_datastream }}"
+  register: owasp_oscap_eval
+  changed_when: false
+  failed_when: owasp_oscap_eval.rc not in [0, 2]
+
+- name: Fetch OpenSCAP HTML report
+  ansible.builtin.fetch:
+    src: "{{ owasp_oscap_report_path }}"
+    dest: artifacts/{{ inventory_hostname }}/
+    flat: true
+
+- name: Fetch OpenSCAP XML results
+  ansible.builtin.fetch:
+    src: "{{ owasp_oscap_results_path }}"
+    dest: artifacts/{{ inventory_hostname }}/
+    flat: true
+
+- name: Record drift findings
+  ansible.builtin.set_fact:
+    owasp_oscap_eval_rc: "{{ owasp_oscap_eval.rc }}"
+    owasp_findings: "{{ owasp_findings + owasp_drift_findings }}"
+  vars:
+    owasp_drift_findings:
+      - owasp_id: A02:2025
+        control: OpenSCAP profile evaluation
+        status: "{{ 'passed' if (owasp_oscap_eval.rc == 0) else 'failed' }}"
+        detail: "profile={{ owasp_oscap_profile }} datastream={{ owasp_oscap_datastream }} rc={{ owasp_oscap_eval.rc }}"

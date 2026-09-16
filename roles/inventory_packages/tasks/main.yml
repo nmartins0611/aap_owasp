@@ -1,0 +1,65 @@
+---
+- name: Require RedHat-family operating system
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] == 'RedHat'
+    fail_msg: >-
+      inventory_packages supports RedHat-family systems only.
+      Detected os_family={{ ansible_facts['os_family'] }} on {{ inventory_hostname }}.
+
+- name: Gather package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Locate DNF configuration
+  ansible.builtin.stat:
+    path: /etc/dnf/dnf.conf
+  register: owasp_dnf_conf_stat
+
+- name: Fail when DNF configuration is missing
+  ansible.builtin.assert:
+    that:
+      - owasp_dnf_conf_stat.stat.exists
+    fail_msg: /etc/dnf/dnf.conf is missing on {{ inventory_hostname }}.
+
+- name: Read DNF configuration
+  ansible.builtin.slurp:
+    src: /etc/dnf/dnf.conf
+  register: owasp_dnf_conf
+
+- name: Fail when gpgcheck is disabled
+  ansible.builtin.assert:
+    that:
+      - (owasp_dnf_conf.content | b64decode | regex_search('(?m)^gpgcheck\\s*=\\s*1\\s*$')) is not none
+    fail_msg: >-
+      gpgcheck=1 is not set in /etc/dnf/dnf.conf on {{ inventory_hostname }}.
+      Enable gpgcheck before trusting the package supply chain.
+
+- name: List security updates
+  ansible.builtin.command:
+    argv:
+      - dnf
+      - --quiet
+      - updateinfo
+      - list
+      - sec
+  register: owasp_security_updates
+  changed_when: false
+
+- name: Record inventory findings
+  ansible.builtin.set_fact:
+    owasp_findings: "{{ owasp_findings + owasp_inventory_findings }}"
+  vars:
+    owasp_inventory_findings:
+      - owasp_id: A03:2025
+        control: Installed package inventory
+        status: collected
+        detail: "{{ ansible_facts.packages.keys() | list | length }} packages installed"
+      - owasp_id: A03:2025
+        control: Security updates available
+        status: "{{ 'action_required' if (owasp_security_updates.stdout | trim | length > 0) else 'passed' }}"
+        detail: "{{ owasp_security_updates.stdout if (owasp_security_updates.stdout | trim | length > 0) else 'No security updates listed' }}"
+      - owasp_id: A08:2025
+        control: DNF gpgcheck
+        status: passed
+        detail: gpgcheck=1 in /etc/dnf/dnf.conf

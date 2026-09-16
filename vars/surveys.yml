@@ -1,0 +1,31 @@
+---
+owasp_crypto_survey:
+  name: OWASP crypto policy
+  description: System-wide cryptographic policy applied by OWASP A04 - Crypto and TLS
+  spec:
+    - question_name: Crypto policy
+      question_description: Must be a policy shipped by crypto-policies on the target
+      required: true
+      variable: owasp_crypto_policy
+      type: multiplechoice
+      choices:
+        - DEFAULT
+        - DEFAULT:NO-SHA1
+        - FUTURE
+        - FIPS
+      default: DEFAULT
+
+owasp_oscap_survey:
+  name: OWASP OpenSCAP scan
+  description: Datastream and profile for the drift scan job
+  spec:
+    - question_name: OpenSCAP datastream path
+      required: true
+      variable: owasp_oscap_datastream
+      type: text
+      default: /usr/share/xml/scap/ssg/content/ssg-rhel9-ds.xml
+    - question_name: OpenSCAP profile
+      required: true
+      variable: owasp_oscap_profile
+      type: text
+      default: xccdf_org.ssgproject.content_profile_cis_server_l1

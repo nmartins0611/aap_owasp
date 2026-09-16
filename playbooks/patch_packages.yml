@@ -1,0 +1,13 @@
+---
+# A03 Software Supply Chain Failures — security updates only.
+
+- name: Apply security package updates
+  hosts: owasp_targets
+  become: true
+  gather_facts: true
+  vars:
+    owasp_findings: []
+    owasp_report_path: /var/tmp/owasp-patch-{{ inventory_hostname }}.md
+  roles:
+    - role: patch_packages
+    - role: owasp_report

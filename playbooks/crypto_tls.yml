@@ -1,0 +1,19 @@
+---
+# A04 Cryptographic Failures and A08 integrity of crypto policy.
+
+- name: Apply system cryptographic policy
+  hosts: owasp_targets
+  become: true
+  gather_facts: true
+  vars:
+    owasp_findings: []
+    owasp_crypto_policy: DEFAULT
+    owasp_crypto_policy_allowlist:
+      - DEFAULT
+      - DEFAULT:NO-SHA1
+      - FUTURE
+      - FIPS
+    owasp_report_path: /var/tmp/owasp-crypto-{{ inventory_hostname }}.md
+  roles:
+    - role: crypto_tls
+    - role: owasp_report

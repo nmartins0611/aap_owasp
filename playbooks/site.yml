@@ -1,0 +1,5 @@
+---
+# Default entry point is the assess workflow, not remediation.
+
+- name: Import assess
+  ansible.builtin.import_playbook: assess.yml

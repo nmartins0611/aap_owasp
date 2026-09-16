@@ -1,0 +1,124 @@
+---
+- name: Require RedHat-family operating system
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] == 'RedHat'
+    fail_msg: >-
+      baseline_harden supports RedHat-family systems only.
+      Detected os_family={{ ansible_facts['os_family'] }} on {{ inventory_hostname }}.
+
+- name: Gather package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Require sshd configuration directory
+  ansible.builtin.stat:
+    path: /etc/ssh/sshd_config.d
+  register: owasp_sshd_dir
+
+- name: Fail when sshd drop-in directory is missing
+  ansible.builtin.assert:
+    that:
+      - owasp_sshd_dir.stat.exists
+      - owasp_sshd_dir.stat.isdir
+    fail_msg: >-
+      /etc/ssh/sshd_config.d is missing on {{ inventory_hostname }}.
+      Install openssh-server before running baseline_harden.
+
+- name: Ensure firewalld is installed
+  ansible.builtin.package:
+    name: firewalld
+    state: present
+
+- name: Ensure firewalld is started and enabled
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: Set SELinux to enforcing
+  ansible.posix.selinux:
+    policy: targeted
+    state: enforcing
+  register: owasp_selinux
+
+- name: Fail when SELinux change requires a reboot
+  ansible.builtin.assert:
+    that:
+      - owasp_selinux.reboot_required is defined
+      - not owasp_selinux.reboot_required
+    fail_msg: >-
+      SELinux is not yet enforcing on {{ inventory_hostname }} and a reboot is
+      required before baseline_harden can continue.
+
+- name: Restrict sensitive account files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  loop:
+    - path: /etc/passwd
+      mode: "0644"
+    - path: /etc/group
+      mode: "0644"
+    - path: /etc/shadow
+      mode: "0000"
+  loop_control:
+    label: "{{ item.path }}"
+
+- name: Disable SSH root login and password authentication
+  block:
+    - name: Write SSH authentication drop-in
+      ansible.builtin.copy:
+        dest: /etc/ssh/sshd_config.d/99-owasp-auth.conf
+        owner: root
+        group: root
+        mode: "0600"
+        content: |
+          PermitRootLogin no
+          PasswordAuthentication no
+      notify: Restart sshd
+
+    - name: Validate sshd configuration
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/sshd
+          - -t
+      changed_when: false
+  rescue:
+    - name: Remove invalid SSH drop-in
+      ansible.builtin.file:
+        path: /etc/ssh/sshd_config.d/99-owasp-auth.conf
+        state: absent
+
+    - name: Fail after invalid SSH drop-in
+      ansible.builtin.fail:
+        msg: >-
+          sshd rejected /etc/ssh/sshd_config.d/99-owasp-auth.conf on
+          {{ inventory_hostname }}. The drop-in was removed.
+
+- name: Disable httpd directory listing
+  ansible.builtin.replace:
+    path: /etc/httpd/conf/httpd.conf
+    regexp: '^(\s*)Options\s+.*Indexes.*$'
+    replace: '\1Options -Indexes'
+  when: "'httpd' in ansible_facts.packages"
+
+- name: Record baseline findings
+  ansible.builtin.set_fact:
+    owasp_findings: "{{ owasp_findings + owasp_baseline_findings }}"
+  vars:
+    owasp_baseline_findings:
+      - owasp_id: A01:2025
+        control: Account file permissions
+        status: applied
+        detail: /etc/passwd 0644, /etc/group 0644, /etc/shadow 0000
+      - owasp_id: A02:2025
+        control: firewalld and SELinux enforcing
+        status: applied
+        detail: firewalld enabled, SELinux targeted/enforcing
+      - owasp_id: A07:2025
+        control: SSH root and password login disabled
+        status: applied
+        detail: /etc/ssh/sshd_config.d/99-owasp-auth.conf

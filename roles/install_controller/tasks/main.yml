@@ -1,0 +1,40 @@
+---
+- name: Require install inputs
+  ansible.builtin.assert:
+    that:
+      - aap_organization is defined
+      - aap_organization | length > 0
+      - aap_inventory is defined
+      - aap_inventory | length > 0
+      - aap_project_name is defined
+      - aap_project_name | length > 0
+      - aap_machine_credential is defined
+      - aap_machine_credential | length > 0
+      - aap_controller_credential is defined
+      - aap_controller_credential | length > 0
+      - aap_execution_environment is defined
+      - aap_execution_environment | length > 0
+      - owasp_label is defined
+      - owasp_jt_baseline is defined
+      - owasp_jt_inventory is defined
+      - owasp_jt_patch is defined
+      - owasp_jt_crypto is defined
+      - owasp_jt_logging is defined
+      - owasp_jt_drift is defined
+      - owasp_wf_assess is defined
+      - owasp_wf_remediate is defined
+      - owasp_crypto_survey is defined
+      - owasp_oscap_survey is defined
+    fail_msg: Fill vars/aap.yml from vars/aap.yml.example and load vars/names.yml plus vars/surveys.yml
+
+- name: Create OWASP label
+  ansible.controller.label:
+    name: "{{ owasp_label }}"
+    organization: "{{ aap_organization }}"
+    state: present
+
+- name: Create job templates
+  ansible.builtin.include_tasks: job_templates.yml
+
+- name: Create workflows
+  ansible.builtin.include_tasks: workflows.yml

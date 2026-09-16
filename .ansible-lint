@@ -1,0 +1,7 @@
+---
+profile: production
+exclude_paths:
+  - artifacts/
+  - oscap-reports/
+skip_list:
+  - var-naming[no-role-prefix]

@@ -1,0 +1,8 @@
+---
+# Read-only supply-chain inventory plus OpenSCAP drift scan.
+
+- name: Import package inventory
+  ansible.builtin.import_playbook: inventory_packages.yml
+
+- name: Import OpenSCAP drift scan
+  ansible.builtin.import_playbook: drift_scan.yml

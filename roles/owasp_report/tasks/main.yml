@@ -1,0 +1,26 @@
+---
+- name: Require report inputs
+  ansible.builtin.assert:
+    that:
+      - owasp_findings is defined
+      - owasp_findings | type_debug == "list"
+      - owasp_report_path is defined
+      - owasp_report_path | length > 0
+      - ansible_facts['date_time'] is defined
+    fail_msg: >-
+      Set owasp_findings (list) and owasp_report_path before running owasp_report
+      on {{ inventory_hostname }}.
+
+- name: Write OWASP findings report
+  ansible.builtin.template:
+    src: owasp_report.md.j2
+    dest: "{{ owasp_report_path }}"
+    owner: root
+    group: root
+    mode: "0640"
+
+- name: Fetch OWASP findings report
+  ansible.builtin.fetch:
+    src: "{{ owasp_report_path }}"
+    dest: artifacts/{{ inventory_hostname }}/
+    flat: true

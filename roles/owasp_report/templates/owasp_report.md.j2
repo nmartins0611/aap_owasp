@@ -1,0 +1,10 @@
+# OWASP findings — {{ inventory_hostname }}
+
+Generated: {{ ansible_facts['date_time']['iso8601'] }}
+Distribution: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}
+
+| OWASP | Control | Status | Detail |
+| --- | --- | --- | --- |
+{% for finding in owasp_findings %}
+| {{ finding.owasp_id }} | {{ finding.control }} | {{ finding.status }} | {{ finding.detail | replace('\n', ' ') }} |
+{% endfor %}

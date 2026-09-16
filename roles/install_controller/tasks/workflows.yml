@@ -1,0 +1,69 @@
+---
+- name: Create assess workflow
+  ansible.controller.workflow_job_template:
+    name: "{{ owasp_wf_assess }}"
+    description: Inventory packages, then OpenSCAP drift scan
+    organization: "{{ aap_organization }}"
+    ask_variables_on_launch: false
+    survey_enabled: true
+    survey_spec: "{{ owasp_oscap_survey }}"
+    labels:
+      - "{{ owasp_label }}"
+    workflow_nodes:
+      - identifier: inventory
+        unified_job_template:
+          name: "{{ owasp_jt_inventory }}"
+          type: job_template
+          organization:
+            name: "{{ aap_organization }}"
+        related:
+          success_nodes:
+            - identifier: drift
+      - identifier: drift
+        unified_job_template:
+          name: "{{ owasp_jt_drift }}"
+          type: job_template
+          organization:
+            name: "{{ aap_organization }}"
+        related:
+          success_nodes: []
+    state: present
+
+- name: Create remediate workflow
+  ansible.controller.workflow_job_template:
+    name: "{{ owasp_wf_remediate }}"
+    description: Baseline harden, crypto policy, then logging. Does not patch.
+    organization: "{{ aap_organization }}"
+    ask_variables_on_launch: false
+    survey_enabled: true
+    survey_spec: "{{ owasp_crypto_survey }}"
+    labels:
+      - "{{ owasp_label }}"
+    workflow_nodes:
+      - identifier: baseline
+        unified_job_template:
+          name: "{{ owasp_jt_baseline }}"
+          type: job_template
+          organization:
+            name: "{{ aap_organization }}"
+        related:
+          success_nodes:
+            - identifier: crypto
+      - identifier: crypto
+        unified_job_template:
+          name: "{{ owasp_jt_crypto }}"
+          type: job_template
+          organization:
+            name: "{{ aap_organization }}"
+        related:
+          success_nodes:
+            - identifier: logging
+      - identifier: logging
+        unified_job_template:
+          name: "{{ owasp_jt_logging }}"
+          type: job_template
+          organization:
+            name: "{{ aap_organization }}"
+        related:
+          success_nodes: []
+    state: present

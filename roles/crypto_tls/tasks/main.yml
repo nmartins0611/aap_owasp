@@ -1,0 +1,54 @@
+---
+- name: Require crypto policy inputs
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] == 'RedHat'
+      - owasp_crypto_policy is defined
+      - owasp_crypto_policy | length > 0
+      - owasp_crypto_policy_allowlist is defined
+      - owasp_crypto_policy_allowlist | type_debug == "list"
+      - owasp_crypto_policy in owasp_crypto_policy_allowlist
+    fail_msg: >-
+      Set owasp_crypto_policy to a value in owasp_crypto_policy_allowlist
+      on {{ inventory_hostname }}.
+
+- name: Require update-crypto-policies
+  ansible.builtin.stat:
+    path: /usr/bin/update-crypto-policies
+  register: owasp_crypto_bin
+
+- name: Fail when crypto-policies tools are missing
+  ansible.builtin.assert:
+    that:
+      - owasp_crypto_bin.stat.exists
+    fail_msg: >-
+      /usr/bin/update-crypto-policies is missing on {{ inventory_hostname }}.
+      Install crypto-policies.
+
+- name: Read current crypto policy
+  ansible.builtin.command:
+    argv:
+      - update-crypto-policies
+      - --show
+  register: owasp_crypto_current
+  changed_when: false
+
+- name: Set system crypto policy
+  ansible.builtin.command:
+    argv:
+      - update-crypto-policies
+      - --set
+      - "{{ owasp_crypto_policy }}"
+  when: owasp_crypto_current.stdout | trim != owasp_crypto_policy
+  register: owasp_crypto_set
+  changed_when: owasp_crypto_set.rc == 0
+
+- name: Record crypto findings
+  ansible.builtin.set_fact:
+    owasp_findings: "{{ owasp_findings + owasp_crypto_findings }}"
+  vars:
+    owasp_crypto_findings:
+      - owasp_id: A04:2025
+        control: System crypto policy
+        status: "{{ 'changed' if (owasp_crypto_set is changed) else 'passed' }}"
+        detail: "policy={{ owasp_crypto_policy }} previous={{ owasp_crypto_current.stdout | trim }}"

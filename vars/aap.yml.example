@@ -1,0 +1,18 @@
+---
+# Copy to vars/aap.yml and fill in. vars/aap.yml is gitignored.
+
+aap_organization: Default
+
+# Existing inventory that contains the hosts you want to harden.
+aap_inventory: Demo Inventory
+
+# Project that already contains this repository on Controller.
+# Install does not create the project or any credentials.
+aap_project_name: aap_owasp
+
+# Credentials that already exist on Controller.
+aap_machine_credential: Demo Credential
+aap_controller_credential: AAP Controller Credential
+
+# Execution environment that includes ansible.posix.
+aap_execution_environment: Default execution environment

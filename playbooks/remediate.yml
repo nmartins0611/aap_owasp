@@ -1,0 +1,11 @@
+---
+# Apply baseline, crypto policy, and logging. Does not patch packages.
+
+- name: Import baseline harden
+  ansible.builtin.import_playbook: baseline_harden.yml
+
+- name: Import crypto TLS
+  ansible.builtin.import_playbook: crypto_tls.yml
+
+- name: Import logging alert
+  ansible.builtin.import_playbook: logging_alert.yml

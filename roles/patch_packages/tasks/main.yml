@@ -1,0 +1,26 @@
+---
+- name: Require RedHat-family operating system
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] == 'RedHat'
+    fail_msg: >-
+      patch_packages supports RedHat-family systems only.
+      Detected os_family={{ ansible_facts['os_family'] }} on {{ inventory_hostname }}.
+
+- name: Apply security updates
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+    security: true
+    update_only: true
+  register: owasp_security_patch
+
+- name: Record patch findings
+  ansible.builtin.set_fact:
+    owasp_findings: "{{ owasp_findings + owasp_patch_findings }}"
+  vars:
+    owasp_patch_findings:
+      - owasp_id: A03:2025
+        control: Security package updates
+        status: "{{ 'changed' if owasp_security_patch.changed else 'passed' }}"
+        detail: "changed={{ owasp_security_patch.changed }}"

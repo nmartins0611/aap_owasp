@@ -1,0 +1,15 @@
+---
+# A02 Security Misconfiguration, A01 access control, A07 SSH.
+# Changes sshd, firewalld, SELinux, and account file modes.
+# Do not point this at a workstation you cannot recover.
+
+- name: Apply OWASP baseline hardening
+  hosts: owasp_targets
+  become: true
+  gather_facts: true
+  vars:
+    owasp_findings: []
+    owasp_report_path: /var/tmp/owasp-baseline-{{ inventory_hostname }}.md
+  roles:
+    - role: baseline_harden
+    - role: owasp_report

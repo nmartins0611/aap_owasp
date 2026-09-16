@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  author: Nuno Martins
+  description: OWASP A01/A02/A07 system baseline (firewalld, SELinux, sshd, account files)
+  license: Apache-2.0
+  min_ansible_version: "2.16"
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+        - "10"
+  galaxy_tags:
+    - owasp
+    - security
+    - hardening
+dependencies: []

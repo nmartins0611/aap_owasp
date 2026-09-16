@@ -1,0 +1,12 @@
+*.retry
+*.pyc
+__pycache__/
+.ansible/
+vars/aap.yml
+.env
+.env.*
+*.tar.gz
+/artifacts/
+/oscap-reports/
+*.swp
+.DS_Store

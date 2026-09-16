@@ -1,0 +1,46 @@
+---
+- name: Require RedHat-family operating system
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] == 'RedHat'
+    fail_msg: >-
+      logging_alert supports RedHat-family systems only.
+      Detected os_family={{ ansible_facts['os_family'] }} on {{ inventory_hostname }}.
+
+- name: Ensure audit and rsyslog packages are installed
+  ansible.builtin.package:
+    name:
+      - audit
+      - rsyslog
+    state: present
+
+- name: Ensure auditd is started and enabled
+  ansible.builtin.service:
+    name: auditd
+    state: started
+    enabled: true
+
+- name: Ensure rsyslog is started and enabled
+  ansible.builtin.service:
+    name: rsyslog
+    state: started
+    enabled: true
+
+- name: Install OWASP authentication audit rules
+  ansible.builtin.copy:
+    src: owasp-auth.rules
+    dest: /etc/audit/rules.d/owasp-auth.rules
+    owner: root
+    group: root
+    mode: "0640"
+  notify: Restart auditd
+
+- name: Record logging findings
+  ansible.builtin.set_fact:
+    owasp_findings: "{{ owasp_findings + owasp_logging_findings }}"
+  vars:
+    owasp_logging_findings:
+      - owasp_id: A09:2025
+        control: auditd and rsyslog running
+        status: applied
+        detail: auditd enabled, rsyslog enabled, owasp-auth.rules installed

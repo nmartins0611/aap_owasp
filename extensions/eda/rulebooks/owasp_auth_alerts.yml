@@ -1,0 +1,12 @@
+---
+- name: OWASP A09 failed authentication
+  hosts: all
+  sources:
+    - ansible.eda.journald:
+        match: _COMM=sshd
+  rules:
+    - name: Alert on failed SSH password
+      condition: event.body.MESSAGE is search("Failed password")
+      action:
+        debug:
+          msg: "OWASP A07/A09 failed authentication hostname={{ event.body._HOSTNAME }}"

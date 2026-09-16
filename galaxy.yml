@@ -1,0 +1,36 @@
+---
+namespace: nuno
+name: owasp
+version: 1.0.0
+readme: README.md
+authors:
+  - Nuno Martins
+description: >-
+  Ansible Automation Platform content that maps OWASP Top 10:2025 onto
+  system and platform controls. Covers the operations slice (misconfiguration,
+  supply chain, crypto, authentication, integrity, logging). It does not
+  fix application bugs such as injection or insecure design.
+license:
+  - Apache-2.0
+tags:
+  - aap
+  - owasp
+  - security
+  - hardening
+  - rhel
+  - compliance
+dependencies:
+  ansible.posix: ">=1.5.0"
+  ansible.controller: ">=4.5.0"
+  ansible.eda: ">=2.0.0"
+repository: https://github.com/nmartins0611/aap_owasp
+documentation: https://github.com/nmartins0611/aap_owasp
+homepage: https://github.com/nmartins0611/aap_owasp
+issues: https://github.com/nmartins0611/aap_owasp/issues
+build_ignore:
+  - .git
+  - .ansible
+  - "*.retry"
+  - vars/aap.yml
+  - artifacts
+  - oscap-reports

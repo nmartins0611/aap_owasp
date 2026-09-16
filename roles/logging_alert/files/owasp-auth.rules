@@ -1,0 +1,7 @@
+# OWASP A09 — identity and authentication audit watches
+-w /etc/passwd -p wa -k owasp_identity
+-w /etc/shadow -p wa -k owasp_identity
+-w /etc/group -p wa -k owasp_identity
+-w /etc/gshadow -p wa -k owasp_identity
+-w /var/log/lastlog -p wa -k owasp_auth
+-w /var/log/faillock -p wa -k owasp_auth
