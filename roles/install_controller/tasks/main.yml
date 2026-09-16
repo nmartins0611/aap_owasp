@@ -8,10 +8,14 @@
       - aap_inventory | length > 0
       - aap_project_name is defined
       - aap_project_name | length > 0
+      - aap_project_scm_url is defined
+      - aap_project_scm_url | length > 0
+      - aap_project_scm_branch is defined
+      - aap_project_scm_branch | length > 0
+      - aap_project_scm_credential is defined
+      - aap_project_scm_credential | length > 0
       - aap_machine_credential is defined
       - aap_machine_credential | length > 0
-      - aap_controller_credential is defined
-      - aap_controller_credential | length > 0
       - aap_execution_environment is defined
       - aap_execution_environment | length > 0
       - owasp_label is defined
@@ -32,6 +36,9 @@
     name: "{{ owasp_label }}"
     organization: "{{ aap_organization }}"
     state: present
+
+- name: Create project
+  ansible.builtin.include_tasks: project.yml
 
 - name: Create job templates
   ansible.builtin.include_tasks: job_templates.yml

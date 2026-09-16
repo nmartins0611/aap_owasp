@@ -7,8 +7,8 @@
 #   export CONTROLLER_VERIFY_SSL=true
 #   ansible-playbook playbooks/install.yml -e @vars/aap.yml
 #
-# The project and credentials must already exist. This playbook does not
-# create secrets.
+# The project is created from GitHub. Machine credentials must already exist.
+# This playbook does not create secrets.
 
 - name: Install OWASP objects on Controller
   hosts: localhost

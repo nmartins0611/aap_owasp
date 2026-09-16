@@ -1,0 +1,14 @@
+---
+- name: Create OWASP project from git
+  ansible.controller.project:
+    name: "{{ aap_project_name }}"
+    description: OWASP Top 10:2025 system and platform controls
+    organization: "{{ aap_organization }}"
+    scm_type: git
+    scm_url: "{{ aap_project_scm_url }}"
+    scm_branch: "{{ aap_project_scm_branch }}"
+    scm_credential: "{{ aap_project_scm_credential }}"
+    scm_update_on_launch: true
+    wait: true
+    update: true
+    state: present
